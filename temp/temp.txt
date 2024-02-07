@@ -1,0 +1,1 @@
+  <!-->a href="{{ url_for('set_feed') }}" class="btn">Set Your own Language</a>-->
