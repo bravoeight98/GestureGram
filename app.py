@@ -42,6 +42,7 @@ def generate_frames():
 
             lst = np.array(lst).reshape(1, -1)
             pred = labels[np.argmax(model.predict(lst))]
+            print(pred)
             cv2.putText(frame, pred, (50, 50), cv2.FONT_ITALIC, 1, (255, 0, 0), 2)
 
         # Draw landmarks
