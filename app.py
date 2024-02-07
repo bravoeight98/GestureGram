@@ -42,25 +42,23 @@ def generate_frames():
 
             lst = np.array(lst).reshape(1, -1)
             pred = labels[np.argmax(model.predict(lst))]
-    
             print(pred)
-            cv2.putText(frame, pred, (50, 50), cv2.FONT_ITALIC, 1, (255, 0, 0), 2)
 
-            # Draw landmarks
-            mp.solutions.drawing_utils.draw_landmarks(frame, results.face_landmarks, mp.solutions.drawing_styles.get_default_face_mesh_contours_style())
-            mp.solutions.drawing_utils.draw_landmarks(frame, results.left_hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
-            mp.solutions.drawing_utils.draw_landmarks(frame, results.right_hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
+            # Send prediction to the template
+            yield jsonify({'frame': frame.tobytes(), 'pred': pred})
 
-            # Encode frame as JPEG for streaming
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
+        # Draw landmarks (optional for visual feedback)
+        mp.solutions.drawing_utils.draw_landmarks(frame, results.face_landmarks, mp.solutions.drawing_styles.get_default_face_mesh_contours_style())
+        mp.solutions.drawing_utils.draw_landmarks(frame, results.left_hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
+        mp.solutions.drawing_utils.draw_landmarks(frame, results.right_hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
 
-            # Return frame and predicted gesture label (pred) as JSON data
-            yield (b'--frame\r\n'
-                   b'Content-Type: application/json\r\n\r\n' +
-                   jsonify({'frame': cv2.imencode('.jpg', frame)[1].tobytes(),
-                           'pred': pred}).json().encode() + b'\r\n')
+        # Encode frame as JPEG for streaming
+        ret, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
+# Flask app code
 @app.route('/')
 def index():
     return render_template('index.html')  # Replace with your HTML template
@@ -69,13 +67,9 @@ def index():
 def video_feed():
     return render_template('video_feed.html')
 
-#@app.route('/set_feed')
-#def video_feed():
-#    return render_template('set_feed.html')
-
 @app.route('/video_frame_stream')
 def video_frame_stream():
-    """Generate video frames as a response, including predicted gesture label."""
+    """Generate video frames and predictions as a response."""
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
