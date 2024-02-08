@@ -17,9 +17,13 @@ holistic = mp.solutions.holistic.Holistic()
 # Global variable to store the prediction
 pred = "Initial Prediction"
 
+# Initialize an empty list to store prediction values
+pred_history = []
+
 def generate_frames():
     cap = cv2.VideoCapture(0)
     global pred  # Access the global variable
+    global pred_history
 
     
     while True:
@@ -48,6 +52,7 @@ def generate_frames():
 
             lst = np.array(lst).reshape(1, -1)
             pred = labels[np.argmax(model.predict(lst))]
+            pred_history.append(pred)
             cv2.putText(frame, pred, (50, 50), cv2.FONT_ITALIC, 1, (255, 0, 0), 2)
             print(pred)
 
@@ -86,6 +91,11 @@ def video_frame_stream():
 def get_pred():
     global pred  # Access the global variable
     return pred
+
+@app.route('/predhistory')
+def get_predhistory():
+    global pred_history
+    return jsonify(pred_history)
 
 if __name__ == '__main__':
     app.run(debug=True)  # Enable debug mode for easier development
