@@ -102,6 +102,28 @@
     }
 
     setInterval(updatePredictionHistory, 1000); // Update every 1 second
+
+    function speakText() {
+      var textToSpeak = document.getElementById('output-box2').innerText;
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status === 200) {
+            var audioUrl = JSON.parse(xhr.responseText).audio_url;
+            var audio = new Audio(audioUrl);
+            audio.play();
+          } else {
+            console.error('Error generating speech:', xhr.status);
+          }
+        }
+      };
+      xhr.open('POST', '/generate_speech', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({ text: textToSpeak }));
+    }
+
+    setInterval(updatePrediction, 1000); // Update every 1 second
+    
   </script>
 
 </head>
@@ -119,7 +141,7 @@
     <!-- Output will be printed here -->
   </div>
   <br>
-  <button class="btnn">Speak</button>
+  <button class="btnn" onclick="speakText()">Speak</button>
   <button class="btnn">Translate</button>
 </body>
 </html>
