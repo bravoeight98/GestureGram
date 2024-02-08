@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, Response, jsonify
+from flask import Flask, render_template, url_for, Response
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -16,7 +16,7 @@ holistic = mp.solutions.holistic.Holistic()
 
 def generate_frames():
     cap = cv2.VideoCapture(0)
-
+    
     while True:
         success, frame = cap.read()
         if not success:
@@ -43,11 +43,9 @@ def generate_frames():
             lst = np.array(lst).reshape(1, -1)
             pred = labels[np.argmax(model.predict(lst))]
             print(pred)
+            cv2.putText(frame, pred, (50, 50), cv2.FONT_ITALIC, 1, (255, 0, 0), 2)
 
-            # Send prediction to the template
-            yield jsonify({'frame': frame.tobytes(), 'pred': pred})
-
-        # Draw landmarks (optional for visual feedback)
+        # Draw landmarks
         mp.solutions.drawing_utils.draw_landmarks(frame, results.face_landmarks, mp.solutions.drawing_styles.get_default_face_mesh_contours_style())
         mp.solutions.drawing_utils.draw_landmarks(frame, results.left_hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
         mp.solutions.drawing_utils.draw_landmarks(frame, results.right_hand_landmarks, mp.solutions.hands.HAND_CONNECTIONS)
@@ -58,7 +56,8 @@ def generate_frames():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
-# Flask app code
+#Flask app code
+
 @app.route('/')
 def index():
     return render_template('index.html')  # Replace with your HTML template
@@ -67,9 +66,13 @@ def index():
 def video_feed():
     return render_template('video_feed.html')
 
+#@app.route('/set_feed')
+#def video_feed():
+#    return render_template('set_feed.html')
+
 @app.route('/video_frame_stream')
 def video_frame_stream():
-    """Generate video frames and predictions as a response."""
+    """Generate video frames as a response."""
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
