@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, Response, jsonify
+from flask import Flask, render_template, url_for, Response, jsonify, request
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -100,6 +100,20 @@ def get_pred():
 def get_predhistory():
     global pred_history
     return jsonify(pred_history)
+
+@app.route('/generate_speech', methods=['POST'])
+def generate_speech():
+    text_to_speak = request.json['text']
+    response = openai.Completion.create(
+        engine="text-davinci-002",
+        prompt=text_to_speak,
+        max_tokens=30,
+        temperature=0.8,
+        n=1,
+        stop=None
+    )
+    audio_url = response['choices'][0]['audio']
+    return jsonify({'audio_url': audio_url})
 
 if __name__ == '__main__':
     app.run(debug=True)  # Enable debug mode for easier development
