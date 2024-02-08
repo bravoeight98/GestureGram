@@ -79,9 +79,29 @@
       xhr.open('GET', '/pred', true);      
       xhr.send();
     }
+    
 
     // Function to periodically update the prediction value
     setInterval(updatePrediction, 1000); // Update every 1 second
+
+    function updatePredictionHistory() {
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status === 200) {
+            var predHistory = JSON.parse(xhr.responseText);
+            var predString = predHistory.join(' '); // Convert array to string
+            document.getElementById('output-box2').innerText = predString;
+          } else {
+            console.error('Error fetching prediction history:', xhr.status);
+          }
+        }
+      };
+      xhr.open('GET', '/predhistory', true);
+      xhr.send();
+    }
+
+    setInterval(updatePredictionHistory, 1000); // Update every 1 second
   </script>
 
 </head>
