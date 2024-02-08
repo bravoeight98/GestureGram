@@ -2,6 +2,7 @@ from flask import Flask, render_template, url_for, Response, jsonify
 import cv2
 import numpy as np
 import mediapipe as mp
+import openai
 from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
@@ -16,6 +17,9 @@ holistic = mp.solutions.holistic.Holistic()
 
 # Global variable to store the prediction
 pred = "Initial Prediction"
+
+# Initialize OpenAI API client
+openai.api_key = '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'
 
 # Initialize an empty list to store prediction values
 pred_history = []
